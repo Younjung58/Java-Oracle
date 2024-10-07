@@ -43,9 +43,10 @@ public class MemberADM {
 		m.setAge(32);
 		// DTO 객체를 만들었음.. 오라클에 저장해보자.
 		// 2-1. 커넥션 자원 가져오기
+		Connection conn = null;
 		try {
-			Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:orcl"/*포트넘버 1521*/,"system"/*아이디*/,
-															"11111111" /*비밀번호*/);
+			conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:orcl"/*포트넘버 1521*/,"system"/*아이디*/,
+					"11111111" /*비밀번호*/);
 			System.out.println("커넥션 자원 획득 성공");
 			String sql = "insert into memberone values(?,?,?,default)";
 			// 무슨값이 들어가는지 모르기에 ?로 값을 먼저 입력 -> Mapping을 통하여 최종 값을 넣을건데, 이때 들어가야하는 정보를 DTO가 알려줌
@@ -65,6 +66,14 @@ public class MemberADM {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			if(conn != null) {
+				try {
+					conn.close(); 	// 자원반납
+				} catch (Exception e2) {
+					// TODO: handle exception
+				}
+			}
 		}
 	}
 }
