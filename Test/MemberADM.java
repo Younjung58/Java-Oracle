@@ -2,6 +2,7 @@ package Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class MemberADM {
@@ -46,6 +47,21 @@ public class MemberADM {
 			Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:orcl"/*포트넘버 1521*/,"system"/*아이디*/,
 															"11111111" /*비밀번호*/);
 			System.out.println("커넥션 자원 획득 성공");
+			String sql = "insert into memberone values(?,?,?,default)";
+			// 무슨값이 들어가는지 모르기에 ?로 값을 먼저 입력 -> Mapping을 통하여 최종 값을 넣을건데, 이때 들어가야하는 정보를 DTO가 알려줌
+			// 쿼리문을 커넥션을 통해서 연결해라...
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, m.getId());	// 물음표 1번째
+			pstmt.setString(2, m.getName());	// 물음표 2번째
+			pstmt.setInt(3, m.getAge());	// 물음표 3번째
+			// 실행 후 리턴값 가져오기
+			int result = pstmt.executeUpdate();
+			if(result == 0) {
+				conn.rollback();		// 쿼리문 취소시켜라
+			}else {	
+				conn.commit();		// 커밋실행시켜라
+			}
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
