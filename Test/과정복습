@@ -1,0 +1,47 @@
+ 가. DTO란 무엇인가?
+	-> DTO란 Data Transfer Object로서, oracle영역에 저장되어있는 정보를(table에) java로 나르는 역할(또는 반대로)을 하는 객체를 의미한다.
+		즉, 큰 의미로는 데이터를 옮겨주는 역할을 하는 객체를 DTO라고 한다.(getter/setter)(개발자가 임의로 붙여준 객체의 역할)
+ 나. 라이브러리란? 우리가 사용한 라이브러리는?
+	-> 라이브러리란, 오라클사에서 제공하는 소스파일의 묶음으로, 오라클과 연동을 가능하게할 수 있게끔
+		저장할 수 있는 코드를 class의 형태로 만들어서 주는 것이다.
+	-> 우리가 사용한 라이브러리는 ojdbc6로, 이 라이브러리의 형식은 jar이다.
+ 다. 빌드란? 우리가 한 빌드는?
+	-> 프로젝트에 라이브러리를 빌드하여 사용할 준비를 하는 것을 의미한다.
+  	    우리는 이를 이클립스 프로젝트 우클릭하여 build path를 사용해 미리 파일에 저장해두었던 ojdbc6.jar를 적용하여 빌드를 하였다. 
+	    해당 프로젝트 하위로 선택한 라이브러리가 형성된것으로 빌드의 완료를 확인하였다.
+ 라. 자바에서 CRUD 코드를 작성하는 순서
+        드라이버는 1번만 로드 ... 부터    쭈욱  
+	-> 1. 라이브러리 빌드를 완료했으면 해당 라이브러리로부터 필요한 드라이버를 로드한다.
+	       (한번만 하면되기에 해당 부분을 메소드로 나누어 사용하는 것을 추천, 생성자가 가장 좋은 위치)
+	       Class.forName("oracle.jdbc.driver.OracleDriver);
+	       의 코드를 통하여 드라이버를 로드하고, 제대로 오라클 드라이버가 로드된다면 오라클에서 배포한 라이브러리 사용 준비 완료를 의미
+		-> 이때, ClassNotFoundException이 발생할 수 있기때문에 try~catch~ 구문으로 직접 예외를 처리해준다.
+	   2. CRUD 작업을 수행한다
+		2-1. 커넥션을 가져온다.  
+			Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:orcl","system","11111111");
+			-> DB가 자바에게 연결을 위해서 빌려주는 자원으로, 이것을 획득해야 오라클에서 작업이 가능하다.
+			    다만 커넥션 자원이 한정적이기때문에 사용을 다하고나서는 반납하는 것이 좋다.
+			-> DriverManager 클래스의 getConnection메소드를 사용, 입력은 DB접속에 필요한 포트넘버 , 아이디 , 비밀번호 순
+		2-2. 쿼리문 만들기 
+			String sql = "insert into memeberone(table명) values(?,?,?,default)";
+  			-> 입력하고 싶은 값을 쿼리문을 통하여 작성
+		2-3. 쿼리문 완성하기(Mapping)
+			-> DTO의 getter로부터 넣을값을 받아와서 최종적으로 쿼리문을 완성시키는 것
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, m.getId()); 	// 1번 ?에 넣을값 받아와서 세팅
+			pstmt.setString(2, m.getName()); 	// 2번 ?에 넣을값 받아와서 세팅
+			pstmt.setInt(3, m.getAge()); 		// 3번 ?에 넣을값 받아와서 세팅
+		2-4. 최종 완성된 쿼리문을 전송해서 오라클에서 실행 / 2-5. 오라클에서 리턴값 전송
+			-> select문과 같은 쿼리문을 실행할 때: executeQuery()를 사용 / 결과를 ResultSet객체를 통하여 가져올 수 있다.(결과 집합을 반환)
+			-> insert, update, delete와 같은 쿼리문을 실행하고, 실행 결과로 영향을 받은 레코드 수를 반환받을 때: executeUpdate() 사용
+					=> 이때 반환타입이 int이므로, 쿼리 실행결과로 반환값을 int로 가져옴
+						int result = pstmt.executeUpdate();
+		2-6. 자바에서 리턴값 처리
+			if(result==0){		// result가 0이라는 것은 새로 업데이트가 된 레코드가 없다는 것이므로, 해당 쿼리가 실행안됨을 의미
+				conn.rollback();	// 쿼리문 취소
+			}else{
+				conn.commit();	// 제대로 이뤄졌으면 커밋 실행
+			}
+		2-7. 커넥션 자원 반납
+			conn.close();		// 커넥션 사용을 완료하였으면 다시 해당 자원을 반납하여 자원의 낭비를 막음
+						   반납과정이 없다면, idle time이 길어지고 그로인하여 DB의 성능이 저하되므로 해당 과정 중요

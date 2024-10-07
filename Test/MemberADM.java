@@ -3,6 +3,7 @@ package Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class MemberADM {
@@ -57,10 +58,12 @@ public class MemberADM {
 			pstmt.setInt(3, m.getAge());	// 물음표 3번째
 			// 실행 후 리턴값 가져오기
 			int result = pstmt.executeUpdate();
+//			ResultSet rs = pstmt.executeQuery();
 			if(result == 0) {
 				conn.rollback();		// 쿼리문 취소시켜라
 			}else {	
 				conn.commit();		// 커밋실행시켜라
+//				System.out.println(rs);
 			}
 			
 		} catch (SQLException e) {
