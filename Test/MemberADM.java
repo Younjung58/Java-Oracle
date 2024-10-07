@@ -47,6 +47,7 @@ public class MemberADM {
 															"11111111" /*비밀번호*/);
 			System.out.println("커넥션 자원 획득 성공");
 		} catch (SQLException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
